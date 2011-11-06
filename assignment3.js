@@ -73,8 +73,7 @@ function mouseDownEvent(x, y)
 	{
 		_g.clearRect(0, 0, _rc.width, _rc.height);
 	}
-	_points.length = 1;
-	_points[0] = new Point(x, y);
+	_points = [{X: x, Y: y}];
 	drawText("Recording unistroke...");
 	_g.fillRect(x - 4, y - 3, 9, 9);
 	_isDown = true;
@@ -85,7 +84,7 @@ function mouseMoveEvent(x, y)
 	{
 		x -= _rc.x;
 		y -= _rc.y - getScrollY();
-		_points[_points.length] = new Point(x, y); // append
+		_points.push({X: x, Y: y});
 		drawConnectedPoint(_points.length - 2, _points.length - 1);
 	}
 }
