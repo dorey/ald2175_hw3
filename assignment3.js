@@ -3,9 +3,16 @@ function createCanvas(_opts) {
     var opts = _.extend({
         width: 600,
         height: 400,
+        bury: ['onselectstart', 'onmousedown'],
         elem: '#dollar',
         events: {}
     }, _opts);
+    _.each(opts.bury, function(evtName){
+        log("burying ", evtName);
+        document[evtName] = function(){
+            return false;
+        }
+    });
     var canvasWrap = $(opts.elem).eq(0),
         $c = $('<canvas />')
             .attr('width', opts.width)
@@ -23,35 +30,9 @@ function createCanvas(_opts) {
 	_rc = getCanvasRect(canvas); // canvas rect on page
 	_g.fillStyle = "rgb(255,255,136)";
 	_g.fillRect(0, 0, _rc.width, 20);
-
 	_isDown = false;
 	return _g;
 }
-
-function onLoadEvent()
-{
-	document.onselectstart = function() { return false; }
-	document.onmousedown = function() { return false; }
-	_points = [];
-	_r = new DollarRecognizer();
-    _g = createCanvas({
-        elem: '#dollar',
-        width: 600,
-        height: 400,
-        events: {
-            mousedown: function() {
-                mouseDownEvent(event.clientX, event.clientY)
-            },
-            mouseup: function() {
-                mouseUpEvent(event.clientX, event.clientY)
-            },
-            mousemove: function() {
-                mouseMoveEvent(event.clientX, event.clientY);
-            }
-        }
-    });
-}
-$(onLoadEvent);
 
 function getCanvasRect(canvas)
 {

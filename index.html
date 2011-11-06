@@ -54,5 +54,29 @@
 	<script type="text/javascript" src="./washington_files/gentilis-normal-normal.js"></script>
 	<script src="dollar-modified.js" type="text/javascript" charset="utf-8"></script>
 	<script src="assignment3.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript" charset="utf-8">
+		$(function() {
+			document.onselectstart = function() { return false; }
+			document.onmousedown = function() { return false; }
+			_points = [];
+			_r = new DollarRecognizer();
+		    _g = createCanvas({
+		        elem: '#dollar',
+		        width: 600,
+		        height: 400,
+		        events: {
+		            mousedown: function() {
+		                mouseDownEvent(event.clientX, event.clientY)
+		            },
+		            mouseup: function() {
+		                mouseUpEvent(event.clientX, event.clientY)
+		            },
+		            mousemove: function() {
+		                mouseMoveEvent(event.clientX, event.clientY);
+		            }
+		        }
+		    });
+		});
+	</script>
   </body>
 </html>
