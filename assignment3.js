@@ -8,7 +8,6 @@ function createCanvas(_opts) {
         events: {}
     }, _opts);
     _.each(opts.bury, function(evtName){
-        log("burying ", evtName);
         document[evtName] = function(){
             return false;
         }
