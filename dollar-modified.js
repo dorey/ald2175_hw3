@@ -121,11 +121,15 @@ var DollarRecognizer = (function(){
         var opts = _.extend({
             templates: defaultTemplates
         }, _opts);
+
+        // Preserving original templates to make them easy to reset
+        this.originalTemplates = opts.templates;
+
     	//
     	// one predefined template for each unistroke type
     	//
     	this.Templates = _.map(opts.templates, function(ts, tname){
-    	    return new Template(tname, stringToPoints(ts));
+    	    return new Template(tname, DollarRecognizer.stringToPoints(ts));
     	});
     	//
     	// The $1 Gesture Recognizer API begins here -- 3 methods
@@ -164,7 +168,7 @@ var DollarRecognizer = (function(){
     	//
     	this.AddTemplate = function(name, points)
     	{
-    		this.Templates[this.Templates.length] = new Template(name, points); // append new template
+    		this.Templates.push(new Template(name, points));
     		var num = 0;
     		for (var i = 0; i < this.Templates.length; i++)
     		{
@@ -360,12 +364,14 @@ var DollarRecognizer = (function(){
     }
     function Deg2Rad(d) { return (d * Math.PI / 180.0); }
     function Rad2Deg(r) { return (r * 180.0 / Math.PI); }
-    function pointsToString(pts) {
+
+    DollarRecognizer.pointsToString = function pointsToString(pts) {
         return _.map(pts, function(t){
             return [t.X, t.Y].join(',')
         }).join(';');
-    }
-    function stringToPoints(str) {
+    };
+
+    DollarRecognizer.stringToPoints = function stringToPoints(str) {
         return _.map(str.split(';'), function(ps){
             var pt = ps.split(',');
             return {
@@ -373,7 +379,8 @@ var DollarRecognizer = (function(){
                 Y: +pt[1]
             }
         });
-    }
+    };
+
     var defaultTemplates = {
     	"triangle": "137,139;135,141;133,144;132,146;130,149;128,151;126,155;123,160;120,166;116,171;112,177;107,183;102,188;100,191;95,195;90,199;86,203;82,206;80,209;75,213;73,213;70,216;67,219;64,221;61,223;60,225;62,226;65,225;67,226;74,226;77,227;85,229;91,230;99,231;108,232;116,233;125,233;134,234;145,233;153,232;160,233;170,234;177,235;179,236;186,237;193,238;198,239;200,237;202,239;204,238;206,234;205,230;202,222;197,216;192,207;186,198;179,189;174,183;170,178;164,171;161,168;154,160;148,155;143,150;138,148;136,148",
     	"x": "87,142;89,145;91,148;93,151;96,155;98,157;100,160;102,162;106,167;108,169;110,171;115,177;119,183;123,189;127,193;129,196;133,200;137,206;140,209;143,212;146,215;151,220;153,222;155,223;157,225;158,223;157,218;155,211;154,208;152,200;150,189;148,179;147,170;147,158;147,148;147,141;147,136;144,135;142,137;140,139;135,145;131,152;124,163;116,177;108,191;100,206;94,217;91,222;89,225;87,226;87,224",

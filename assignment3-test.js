@@ -20,7 +20,7 @@ var samples = {
 test("sample_recognizer", function(){
     var _r = new DollarRecognizer();
     _.each(samples, function(patternStr, patternName){
-        var result = _r.Recognize(stringToPoints(patternStr))
+        var result = _r.Recognize(DollarRecognizer.stringToPoints(patternStr))
         equals(patternName, result.Name, "The sample pattern worked for " + patternName);
     });
 });
@@ -30,8 +30,8 @@ test("converting", function(){
 });
 
 test("converter", function(){
-    var c1 = stringToPoints(samples['zig-zag']);
-    var cArr = pointsToString(c1);
-    var c2 = stringToPoints(cArr);
+    var c1 = DollarRecognizer.stringToPoints(samples['zig-zag']);
+    var cArr = DollarRecognizer.pointsToString(c1);
+    var c2 = DollarRecognizer.stringToPoints(cArr);
     deepEqual(c1, c2);
 });
