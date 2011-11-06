@@ -10,6 +10,7 @@
     <![endif]-->
     <link href="libs/bootstrap.min.css" rel="stylesheet">
 	<script src="libs/jquery-1.7.js" type="text/javascript" charset="utf-8"></script>
+	<script src="libs/debug.js" type="text/javascript" charset="utf-8"></script>
 	<script src="libs/underscore.js" type="text/javascript" charset="utf-8"></script>
 	<script src="libs/jquery.mustache.js" type="text/javascript" charset="utf-8"></script>
     <link href="style.css" rel="stylesheet">
@@ -26,11 +27,19 @@
 			<div class="span3">
 				<ul>
 					<li>
+						<p>
+							<input type="checkbox" id="use-protractor">
+							Use Protractor
+						</p>
+					</li>
+					<li>
 						<a href="washington.html">Washington.edu's Dollar Recognizer</a>
 					</li>
 				</ul>
 			</div>
 			<div class="span11">
+				<div id="dollar">
+				</div>
 			</div>
 		</div>
       <footer>
@@ -41,6 +50,9 @@
 		</p>
       </footer>
     </div>
+	<script type="text/javascript" src="./washington_files/canvas.text.js"></script>
+	<script type="text/javascript" src="./washington_files/gentilis-normal-normal.js"></script>
+	<script src="dollar-modified.js" type="text/javascript" charset="utf-8"></script>
 	<script src="assignment3.js" type="text/javascript" charset="utf-8"></script>
   </body>
 </html>
