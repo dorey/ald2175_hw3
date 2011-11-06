@@ -1,31 +1,21 @@
 var _isDown, _points, _r, _g, _rc;
-function onLoadEvent()
-{
-	document.onselectstart = function() { return false; }
-	document.onmousedown = function() { return false; }
-	_points = new Array();
-	_r = new DollarRecognizer();
-
-    var canvasWrap = $('#dollar');
-    var $canvas = $('<canvas />')
-                    .attr('width', '600')
-                    .attr('height', '400')
-                    .appendTo(canvasWrap);
-    
-    $canvas
-        .on('mousedown', function(event){
-            mouseDownEvent(event.clientX, event.clientY)
-        })
-        .on('mouseup', function(event){
-            mouseUpEvent(event.clientX, event.clientY)
-        })
-        .on('mousemove', function(event){
-            mouseMoveEvent(event.clientX, event.clientY);
-        })
-        .on('contextmenu', function(){return false;});
-    var canvas = $canvas.get(0);
-
-	_g = canvas.getContext('2d');
+function createCanvas(_opts) {
+    var opts = _.extend({
+        width: 600,
+        height: 400,
+        elem: '#dollar',
+        events: {}
+    }, _opts);
+    var canvasWrap = $(opts.elem).eq(0),
+        $c = $('<canvas />')
+            .attr('width', opts.width)
+            .attr('height', opts.height)
+            .appendTo(canvasWrap);
+    _.each(opts.events, function(cb, ename){
+        $c.on(ename, cb);
+    });
+    var canvas = $c.get(0);
+    _g = canvas.getContext('2d');
 	_g.fillStyle = "rgb(0,0,225)";
 	_g.strokeStyle = "rgb(0,0,225)";
 	_g.lineWidth = 3;
@@ -35,6 +25,31 @@ function onLoadEvent()
 	_g.fillRect(0, 0, _rc.width, 20);
 
 	_isDown = false;
+	return _g;
+}
+
+function onLoadEvent()
+{
+	document.onselectstart = function() { return false; }
+	document.onmousedown = function() { return false; }
+	_points = [];
+	_r = new DollarRecognizer();
+    _g = createCanvas({
+        elem: '#dollar',
+        width: 600,
+        height: 400,
+        events: {
+            mousedown: function() {
+                mouseDownEvent(event.clientX, event.clientY)
+            },
+            mouseup: function() {
+                mouseUpEvent(event.clientX, event.clientY)
+            },
+            mousemove: function() {
+                mouseMoveEvent(event.clientX, event.clientY);
+            }
+        }
+    });
 }
 $(onLoadEvent);
 
@@ -71,7 +86,6 @@ function getScrollY()
 //
 function mouseDownEvent(x, y)
 {
-    log("Here");
 	x -= _rc.x;
 	y -= _rc.y - getScrollY();
 	if (_points.length > 0)
@@ -101,7 +115,8 @@ function mouseUpEvent(x, y)
 		_isDown = false;
 		if (_points.length >= 10)
 		{
-			var result = _r.Recognize(_points, document.getElementById('use-protractor').checked);
+		    $('textarea#debug').html(JSON.stringify(_points))
+			var result = _r.Recognize(_points, true);
 			drawText("Result: " + result.Name + " (" + round(result.Score,2) + ").");
 		}
 		else // fewer than 10 points were inputted

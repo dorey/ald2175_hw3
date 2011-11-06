@@ -136,6 +136,13 @@ function DollarRecognizer() // constructor
 	//
 	// The $1 Gesture Recognizer API begins here -- 3 methods
 	//
+	this.recognizeStr = function(str, tf){
+	    var points = _.map(str.split(';'), function(ptc){
+	        var pt = ptc.split(',');
+	        return { X: pt[0], Y: pt[1] };
+	    });
+	    return this.Recognize(points, !!tf);
+	}
 	this.Recognize = function(points, useProtractor)
 	{
 		points = Resample(points, NumPoints);
@@ -368,3 +375,19 @@ function Distance(p1, p2)
 }
 function Deg2Rad(d) { return (d * Math.PI / 180.0); }
 function Rad2Deg(r) { return (r * 180.0 / Math.PI); }
+
+
+function pointsToString(pts) {
+    return _.map(pts, function(t){
+        return [t.X, t.Y].join(',')
+    }).join(';');
+}
+function stringToPoints(str) {
+    return _.map(str.split(';'), function(ps){
+        var pt = ps.split(',');
+        return {
+            X: +pt[0],
+            Y: +pt[1]
+        }
+    });
+}
