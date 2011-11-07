@@ -67,16 +67,6 @@ var $1Recognizer = (function(){
     	this.Y = y;
     }
     //
-    // Rectangle class
-    //
-    function Rectangle(x, y, width, height) // constructor
-    {
-    	this.X = x;
-    	this.Y = y;
-    	this.Width = width;
-    	this.Height = height;
-    }
-    //
     // Template class: a unistroke template
     //
     function Template(name, points) // constructor
@@ -352,8 +342,12 @@ var $1Recognizer = (function(){
     		    maxY = points[i].Y;
     		}
     	}
+    	return {
+    	    X: minX,
+    	    Y: minY,
+    	    Width: maxX - minX,
+    	    Height: maxY - minY
     	}
-    	return new Rectangle(minX, minY, maxX - minX, maxY - minY);
     }
     function PathDistance(pts1, pts2)
     {
