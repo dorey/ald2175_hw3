@@ -145,19 +145,15 @@ var DollarRecognizer = (function(){
     		var vector = Vectorize(points); // for Protractor
     		var b = +Infinity;
     		var t = 0;
-    		for (var i = 0; i < this.Templates.length; i++) // for each unistroke template
-    		{
-    			var d;
-    			if (useProtractor) // for Protractor
-    			{
-    				d = OptimalCosineDistance(this.Templates[i].Vector, vector);
-    			}
-    			else // Golden Section Search (original $1)
-    			{
-    				d = DistanceAtBestAngle(points, this.Templates[i], -AngleRange, +AngleRange, AnglePrecision);
-    			}
-    			if (d < b)
-    			{
+		    // for each unistroke template
+		    var calcMethod = useProtractor ? OptimalCosineDistance : DistanceAtBestAngle;
+		    var context = {
+			    vector: vector,
+			    points: points
+			};
+    		for (var i = 0; i < this.Templates.length; i++) {
+    			var d = calcMethod(this.Templates[i], context);
+    			if (d < b) {
     				b = d; // best (least) distance
     				t = i; // unistroke template
     			}
@@ -280,8 +276,10 @@ var DollarRecognizer = (function(){
     		vector[i] /= magnitude;
     	return vector;
     }
-    function OptimalCosineDistance(v1, v2) // for Protractor
+    function OptimalCosineDistance(t, context) // for Protractor
     {
+        var v1 = t.Vector;
+        var v2 = context.vector;
     	var a = 0.0;
     	var b = 0.0;
     	for (var i = 0; i < v1.length; i += 2)
@@ -292,8 +290,10 @@ var DollarRecognizer = (function(){
     	var angle = Math.atan(b / a);
     	return Math.acos(a * Math.cos(angle) + b * Math.sin(angle));
     }
-    function DistanceAtBestAngle(points, T, a, b, threshold)
+    function DistanceAtBestAngle(T, context)
     {
+        var a = AngleRange, b = -AngleRange, threshold = AnglePrecision;
+        var points = context.points;
     	var x1 = Phi * a + (1.0 - Phi) * b;
     	var f1 = DistanceAtAngle(points, T, x1);
     	var x2 = (1.0 - Phi) * a + Phi * b;
