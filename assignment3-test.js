@@ -20,7 +20,7 @@ var samples = {
 test("sample_recognizer", function(){
     var r = new $1Recognizer();
     _.each(samples, function(patternStr, patternName){
-        var result = r.Recognize($1Recognizer.stringToPoints(patternStr))
+        var result = r.recognize($1Recognizer.stringToPoints(patternStr))
         equals(patternName, result.Name, "The sample pattern worked for " + patternName);
     });
 });
@@ -34,7 +34,7 @@ test("converter", function(){
 test("simple_template", function(){
     var pt1 = "1,1;2,2;3,3;4,4;5,5;6,6;7,7;8,8;9,9;10,10;11,11";
 
-    // one point is slightly different
+    // in this test, one point is slightly different
     var pt2 = "1,1;2,2;3,3;4,4;5,5;6,7;7,7;8,8;9,9;10,10;11,11";
     var expectedScore = {
         golden: -41,
@@ -47,7 +47,7 @@ test("simple_template", function(){
     });
     _.each(expectedScore, function(expScore, calc){
         r.useCalculation(calc);
-        var result = r.Recognize($1Recognizer.stringToPoints(pt2));
+        var result = r.recognize($1Recognizer.stringToPoints(pt2));
         var name = result.Name;
         var score = Math.floor(result.Score*100);
         equals("straight", name);
