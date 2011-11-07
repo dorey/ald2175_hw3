@@ -420,17 +420,18 @@ var $1RecognizerCanvas = (function(){
             canvas: false,
             color: "rgb(0,0,225)",
             lineWidth: 3,
+            minPointCount: 10,
             rectColor: "rgb(255,255,136)",
             rectFont: "16px Arial",
             events: {
 	            mousedown: function(event) {
-	                mouseDownEvent(event.clientX, event.clientY)
+	                mouseDownEvent(event.pageX, event.pageY)
 	            },
 	            mouseup: function(event) {
-	                mouseUpEvent(event.clientX, event.clientY)
+	                mouseUpEvent(event.pageX, event.pageY)
 	            },
 	            mousemove: function(event) {
-	                mouseMoveEvent(event.clientX, event.clientY);
+	                mouseMoveEvent(event.pageX, event.pageY);
 	            }
 	        }
         }, _opts);
@@ -453,41 +454,25 @@ var $1RecognizerCanvas = (function(){
     	return _g;
     }
 
-    function getCanvasRect(canvas)
-    {
+    function getCanvasRect(canvas) {
     	var w = canvas.width;
     	var h = canvas.height;
 
     	var cx = canvas.offsetLeft;
     	var cy = canvas.offsetTop;
-    	while (canvas.offsetParent != null)
-    	{
+    	while (canvas.offsetParent != null) {
     		canvas = canvas.offsetParent;
     		cx += canvas.offsetLeft;
     		cy += canvas.offsetTop;
     	}
     	return {x: cx, y: cy, width: w, height: h};
     }
-    function getScrollY()
-    {
-    	var scrollY = 0;
-    	if (typeof(document.body.parentElement) != 'undefined')
-    	{
-    		scrollY = document.body.parentElement.scrollTop; // IE
-    	}
-    	else if (typeof(window.pageYOffset) != 'undefined')
-    	{
-    		scrollY = window.pageYOffset; // FF
-    	}
-    	return scrollY;
-    }
     //
     // Mouse Events
     //
-    function mouseDownEvent(x, y)
-    {
+    function mouseDownEvent(x, y) {
     	x -= _rc.x;
-    	y -= _rc.y - getScrollY();
+    	y -= _rc.y;
     	if (_points.length > 0)
     	{
     		_g.clearRect(0, 0, _rc.width, _rc.height);
@@ -497,49 +482,41 @@ var $1RecognizerCanvas = (function(){
     	_g.fillRect(x - 4, y - 3, 9, 9);
     	_isDown = true;
     }
-    function mouseMoveEvent(x, y)
-    {
-    	if (_isDown)
-    	{
+    function mouseMoveEvent(x, y) {
+    	if (_isDown) {
     		x -= _rc.x;
-    		y -= _rc.y - getScrollY();
+    		y -= _rc.y;
     		_points.push({X: x, Y: y});
-    		drawConnectedPoint(_points.length - 2, _points.length - 1);
+    		drawConnectedPoint(_points, _points.length - 2, _points.length - 1);
     	}
     }
-    function mouseUpEvent(x, y)
-    {
-    	if (_isDown)
-    	{
+    function mouseUpEvent(x, y) {
+    	if (_isDown) {
     		_isDown = false;
-    		if (_points.length >= 10)
-    		{
+    		if (_points.length >= opts.minPointCount) {
     			var result = _r.Recognize(_points);
     			drawText("Result: " + result.Name + " (" + round(result.Score,2) + ").");
-    		}
-    		else // fewer than 10 points were inputted
-    		{
+    		} else {
     			drawText("Too few points made. Please try again.");
     		}
     	}
     }
-    function drawText(str)
-    {
+    function drawText(str) {
     	_g.fillStyle = opts.rectColor;
     	_g.fillRect(0, 0, _rc.width, 20);
     	_g.fillStyle = opts.color;
     	_g.fillText(str, 1, 14);
     }
-    function drawConnectedPoint(from, to)
-    {
+    function drawConnectedPoint(points, from, to) {
     	_g.beginPath();
-    	_g.moveTo(_points[from].X, _points[from].Y);
-    	_g.lineTo(_points[to].X, _points[to].Y);
+    	_g.moveTo(points[from].X, points[from].Y);
+    	_g.lineTo(points[to].X, points[to].Y);
     	_g.closePath();
     	_g.stroke();
     }
-    function round(n, d) // round 'n' to 'd' decimals
-    {
+    function round(n, d) {
+        // round 'n' to 'd' decimals
+
     	d = Math.pow(10, d);
     	return Math.round(n * d) / d
     }
