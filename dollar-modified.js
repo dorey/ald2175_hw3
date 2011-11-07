@@ -419,7 +419,9 @@ var $1RecognizerCanvas = (function(){
             R: false,
             canvas: false,
             color: "rgb(0,0,225)",
+            lineWidth: 3,
             rectColor: "rgb(255,255,136)",
+            rectFont: "16px Arial",
             events: {
 	            mousedown: function(event) {
 	                mouseDownEvent(event.clientX, event.clientY)
@@ -437,16 +439,17 @@ var $1RecognizerCanvas = (function(){
         _.each(opts.events, function(cb, ename){
             $c.on(ename, cb);
         });
-
         _g = opts.canvas.getContext('2d');
-    	_g.fillStyle = opts.color;
-    	_g.strokeStyle = opts.color;
-    	_g.lineWidth = 3;
-    	_g.font = "16px Arial";
-    	_rc = getCanvasRect(opts.canvas); // canvas rect on page
-    	_g.fillStyle = opts.rectColor;
+        _isDown = false;
+        _rc = getCanvasRect(opts.canvas); // canvas rect on page
+        _g.fillRect(0, 0, _rc.width, 20);
+        _.extend(_g, {
+            fillStyle: opts.rectColor,
+            strokeStyle: opts.color,
+            lineWidth: opts.lineWidth,
+            font: opts.rectFont
+        });
     	_g.fillRect(0, 0, _rc.width, 20);
-    	_isDown = false;
     	return _g;
     }
 
