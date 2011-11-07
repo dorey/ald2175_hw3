@@ -57,11 +57,13 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
-var $1Recognizer = (function(){
+
+var $1RecognizerMethods = $1RecognizerMethods || {},
+    $1Recognizer = (function(){
     //
     // $1Recognizer class constants
     //
-    var activeCalculation,
+    var activeCalculation = "golden",
         numPoints,
         squareSize,
         diagonal,
@@ -73,7 +75,7 @@ var $1Recognizer = (function(){
     //
     // $1Recognizer class
     //
-    function $1Recognizer(_opts) {
+    function $R(_opts) {
         //
         // opts allows us to set default options which can be
         // overridden when $1Recognizer is constructed.
@@ -94,48 +96,52 @@ var $1Recognizer = (function(){
         this.originalTemplates = opts.templates;
         this.resetTemplates();
     }
-    $1Recognizer.prototype.recognize = function(points) {
+    $R.prototype.recognize = function(points) {
         var useProtractor = activeCalculation === "protractor";
 		points = Resample(points, numPoints);
 		var radians = IndicativeAngle(points);
 		points = RotateBy(points, -radians);
 		points = ScaleTo(points, squareSize);
 		points = TranslateTo(points, origin);
-		var vector = Vectorize(points); // for Protractor
+//		var vector = Vectorize(points); // for Protractor
 		var b = +Infinity, d;
 		var t = 0;
 	    // for each unistroke template
-	    var calcMethod = useProtractor ? OptimalCosineDistance : DistanceAtBestAngle;
 	    var context = {
-		    vector: vector,
+	        angleRange: angleRange,
+	        anglePrecision: anglePrecision,
+	        PHI: PHI,
 		    points: points
 		};
+		var that = this;
+		var activeCalc;
+    	_.each($1RecognizerMethods, function(method, id){
+    	    method.prepPoints.call(context);
+    	    if(activeCalculation===id) { activeCalc = method; }
+    	});
 		_.each(this.templates, function(tArr, tname) {
 		    _.each(tArr, function(template){
-		        var d = calcMethod(template, context);
+		        var d = activeCalc.calcTemplatePoints.call(context, template);
     			if (d < b) {
     				b = d; // best (least) distance
     				t = tname; // unistroke template
     			}
 		    });
 		})
-		if(useProtractor) {
-		    var score = 1.0 / b;
-		} else {
-		    var score = 1.0 - b / halfDiagonal;
-		}
+		var score = 1.0 / b;
+//		if(!useProtractor) score = 1.0 - b / halfDiagonal
 		return {Name: t, Score: score};
     }
-    $1Recognizer.prototype.useCalculation = function(cname) {
+    $R.prototype.useCalculation = function(cname) {
         activeCalculation = cname;
     }
-    $1Recognizer.prototype.addTemplate = function(name, points) {
-        if($.type(points)==="string") { points = $1Recognizer.stringToPoints(points); }
+    $R.prototype.addTemplate = function(name, points) {
+        if($.type(points)==="string") { points = $R.stringToPoints(points); }
         if(this.templates[name]===undefined) { this.templates[name] = []; }
         this.templates[name].push(new Template(name, points));
 		return this.templates[name].length;
     }
-    $1Recognizer.prototype.resetTemplates = function() {
+    $R.prototype.resetTemplates = function() {
         this.templates = {};
     	var that = this;
     	_.each(this.originalTemplates, function(ts, tname){
@@ -157,7 +163,11 @@ var $1Recognizer = (function(){
     	this.Points = RotateBy(this.Points, -radians);
     	this.Points = ScaleTo(this.Points, squareSize);
     	this.Points = TranslateTo(this.Points, origin);
-    	this.Vector = Vectorize(this.Points); // for Protractor
+
+    	var that = this;
+    	_.each($1RecognizerMethods, function(method, id){
+    	    method.prepTemplate.call(that);
+    	});
     }
 
     //
@@ -232,74 +242,10 @@ var $1Recognizer = (function(){
     	}
     	return newpoints;
     }
-    function Vectorize(points) // for Protractor
-    {
-    	var sum = 0.0;
-    	var vector = new Array();
-    	for (var i = 0; i < points.length; i++)
-    	{
-    		vector[vector.length] = points[i].X;
-    		vector[vector.length] = points[i].Y;
-    		sum += points[i].X * points[i].X + points[i].Y * points[i].Y;
-    	}
-    	var magnitude = Math.sqrt(sum);
-    	for (var i = 0; i < vector.length; i++)
-    		vector[i] /= magnitude;
-    	return vector;
-    }
-    function OptimalCosineDistance(t, context) // for Protractor
-    {
-        var v1 = t.Vector;
-        var v2 = context.vector;
-    	var a = 0.0;
-    	var b = 0.0;
-    	for (var i = 0; i < v1.length; i += 2)
-    	{
-    		a += v1[i] * v2[i] + v1[i + 1] * v2[i + 1];
-                    b += v1[i] * v2[i + 1] - v1[i + 1] * v2[i];
-    	}
-    	var angle = Math.atan(b / a);
-    	return Math.acos(a * Math.cos(angle) + b * Math.sin(angle));
-    }
-    function DistanceAtBestAngle(T, context)
-    {
-        var a = angleRange, b = -angleRange, threshold = anglePrecision;
-        var points = context.points;
-    	var x1 = PHI * a + (1.0 - PHI) * b;
-    	var f1 = DistanceAtAngle(points, T, x1);
-    	var x2 = (1.0 - PHI) * a + PHI * b;
-    	var f2 = DistanceAtAngle(points, T, x2);
-    	while (Math.abs(b - a) > threshold)
-    	{
-    		if (f1 < f2)
-    		{
-    			b = x2;
-    			x2 = x1;
-    			f2 = f1;
-    			x1 = PHI * a + (1.0 - PHI) * b;
-    			f1 = DistanceAtAngle(points, T, x1);
-    		}
-    		else
-    		{
-    			a = x1;
-    			x1 = x2;
-    			f1 = f2;
-    			x2 = (1.0 - PHI) * a + PHI * b;
-    			f2 = DistanceAtAngle(points, T, x2);
-    		}
-    	}
-    	return Math.min(f1, f2);
-    }
-    function DistanceAtAngle(points, T, radians)
-    {
-    	var newpoints = RotateBy(points, radians);
-    	return PathDistance(newpoints, T.Points);
-    }
     function Centroid(points)
     {
     	var x = 0.0, y = 0.0;
-    	for (var i = 0; i < points.length; i++)
-    	{
+    	for (var i = 0; i < points.length; i++) {
     		x += points[i].X;
     		y += points[i].Y;
     	}
@@ -307,8 +253,7 @@ var $1Recognizer = (function(){
     	y /= points.length;
     	return {X: x, Y: y};
     }
-    function BoundingBox(points)
-    {
+    function BoundingBox(points) {
     	var minX = +Infinity, maxX = -Infinity, minY = +Infinity, maxY = -Infinity;
     	for (var i = 0, l = points.length; i < l; i++) {
     		if (points[i].X < minX) {
@@ -350,16 +295,16 @@ var $1Recognizer = (function(){
     	var dy = p2.Y - p1.Y;
     	return Math.sqrt(dx * dx + dy * dy);
     }
-    function Deg2Rad(d) { return (d * Math.PI / 180.0); }
-    function Rad2Deg(r) { return (r * 180.0 / Math.PI); }
 
-    $1Recognizer.pointsToString = function pointsToString(pts) {
+    function Deg2Rad(d) { return (d * Math.PI / 180.0); }
+
+    $R.pointsToString = function pointsToString(pts) {
         return _.map(pts, function(t){
             return [t.X, t.Y].join(',')
         }).join(';');
     };
 
-    $1Recognizer.stringToPoints = function stringToPoints(str) {
+    $R.stringToPoints = function stringToPoints(str) {
         return _.map(str.split(';'), function(ps){
             var pt = ps.split(',');
             return {
@@ -386,7 +331,126 @@ var $1Recognizer = (function(){
     	"star": ["75,250;75,247;77,244;78,242;79,239;80,237;82,234;82,232;84,229;85,225;87,222;88,219;89,216;91,212;92,208;94,204;95,201;96,196;97,194;98,191;100,185;102,178;104,173;104,171;105,164;106,158;107,156;107,152;108,145;109,141;110,139;112,133;113,131;116,127;117,125;119,122;121,121;123,120;125,122;125,125;127,130;128,133;131,143;136,153;140,163;144,172;145,175;151,189;156,201;161,213;166,225;169,233;171,236;174,243;177,247;178,249;179,251;180,253;180,255;179,257;177,257;174,255;169,250;164,247;160,245;149,238;138,230;127,221;124,220;112,212;110,210;96,201;84,195;74,190;64,182;55,175;51,172;49,170;51,169;56,169;66,169;78,168;92,166;107,164;123,161;140,162;156,162;171,160;173,160;186,160;195,160;198,161;203,163;208,163;206,164;200,167;187,172;174,179;172,181;153,192;137,201;123,211;112,220;99,229;90,237;80,244;73,250;69,254;69,252"],
     	"pigtail": ["81,219;84,218;86,220;88,220;90,220;92,219;95,220;97,219;99,220;102,218;105,217;107,216;110,216;113,214;116,212;118,210;121,208;124,205;126,202;129,199;132,196;136,191;139,187;142,182;144,179;146,174;148,170;149,168;151,162;152,160;152,157;152,155;152,151;152,149;152,146;149,142;148,139;145,137;141,135;139,135;134,136;130,140;128,142;126,145;122,150;119,158;117,163;115,170;114,175;117,184;120,190;125,199;129,203;133,208;138,213;145,215;155,218;164,219;166,219;177,219;182,218;192,216;196,213;199,212;201,211"]
     };
-    return $1Recognizer;
+    return $R;
+})();
+
+$1RecognizerMethods.protractor = (function(){
+    function Vectorize(points) {
+    	var sum = 0.0;
+    	var vector = new Array();
+    	for (var i = 0; i < points.length; i++)
+    	{
+    		vector[vector.length] = points[i].X;
+    		vector[vector.length] = points[i].Y;
+    		sum += points[i].X * points[i].X + points[i].Y * points[i].Y;
+    	}
+    	var magnitude = Math.sqrt(sum);
+    	for (var i = 0; i < vector.length; i++)
+    		vector[i] /= magnitude;
+    	return vector;
+    }
+    function OptimalCosineDistance(t, context) {
+        var v1 = t.Vector;
+        var v2 = context.vector;
+    	var a = 0.0;
+    	var b = 0.0;
+    	for (var i = 0; i < v1.length; i += 2)
+    	{
+    		a += v1[i] * v2[i] + v1[i + 1] * v2[i + 1];
+                    b += v1[i] * v2[i + 1] - v1[i + 1] * v2[i];
+    	}
+    	var angle = Math.atan(b / a);
+    	return Math.acos(a * Math.cos(angle) + b * Math.sin(angle));
+    }
+    return {
+        name: "Protractor",
+        order: 1,
+        prepTemplate: function(){
+            this.Vector = Vectorize(this.Points); // for Protractor
+        },
+        prepPoints: function(){
+            this.vector = Vectorize(this.points);
+        },
+        calcTemplatePoints: function(template) {
+            return OptimalCosineDistance(template, this);
+        }
+    }
+})();
+
+$1RecognizerMethods.golden = (function(){
+    function DistanceAtBestAngle(T, context) {
+        var a = context.angleRange,
+            b = -context.angleRange,
+            threshold = context.anglePrecision,
+            PHI = context.PHI;
+        var points = context.points;
+    	var x1 = PHI * a + (1.0 - PHI) * b;
+    	var f1 = DistanceAtAngle(points, T, x1);
+    	var x2 = (1.0 - PHI) * a + PHI * b;
+    	var f2 = DistanceAtAngle(points, T, x2);
+    	while (Math.abs(b - a) > threshold) {
+    		if (f1 < f2) {
+    			b = x2;
+    			x2 = x1;
+    			f2 = f1;
+    			x1 = PHI * a + (1.0 - PHI) * b;
+    			f1 = DistanceAtAngle(points, T, x1);
+    		} else {
+    			a = x1;
+    			x1 = x2;
+    			f1 = f2;
+    			x2 = (1.0 - PHI) * a + PHI * b;
+    			f2 = DistanceAtAngle(points, T, x2);
+    		}
+    	}
+    	return Math.min(f1, f2);
+    }
+    function DistanceAtAngle(points, T, radians) {
+    	var newpoints = RotateBy(points, radians);
+    	return PathDistance(newpoints, T.Points);
+    }
+    function RotateBy(points, radians) {
+    	var c = Centroid(points);
+    	var cos = Math.cos(radians);
+    	var sin = Math.sin(radians);
+    	var newpoints = new Array();
+    	for (var i = 0; i < points.length; i++) {
+    		var qx = (points[i].X - c.X) * cos - (points[i].Y - c.Y) * sin + c.X
+    		var qy = (points[i].X - c.X) * sin + (points[i].Y - c.Y) * cos + c.Y;
+    		newpoints[newpoints.length] = {X: qx, Y: qy};
+    	}
+    	return newpoints;
+    }
+    function Centroid(points) {
+    	var x = 0.0, y = 0.0;
+    	for (var i = 0; i < points.length; i++) {
+    		x += points[i].X;
+    		y += points[i].Y;
+    	}
+    	x /= points.length;
+    	y /= points.length;
+    	return {X: x, Y: y};
+    }
+    function PathDistance(pts1, pts2) {
+    	var d = 0.0;
+    	for (var i = 0; i < pts1.length; i++) // assumes pts1.length == pts2.length
+    		d += Distance(pts1[i], pts2[i]);
+    	return d / pts1.length;
+    }
+    function Distance(p1, p2) {
+    	var dx = p2.X - p1.X;
+    	var dy = p2.Y - p1.Y;
+    	return Math.sqrt(dx * dx + dy * dy);
+    }
+    return {
+        name: "Golden",
+        order: 0,
+        prepTemplate: function(){},
+        prepPoints: function(){},
+        calcTemplatePoints: function(template) {
+            return DistanceAtBestAngle(template, this);
+        }
+    }
 })();
 
 var _points = [];
