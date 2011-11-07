@@ -36,6 +36,7 @@
 		<div class="row">
 			<div class="span14">
 				<div id="dollar">
+					<canvas></canvas>
 				</div>
 			</div>
 		</div>
@@ -59,25 +60,16 @@
     </div>
 	<script type="text/javascript" charset="utf-8">
 		$(function() {
-			_points = [];
-			_r = new DollarRecognizer();
-		    _g = createCanvas({
-		        elem: '#dollar',
-		        width: 800,
-		        height: 100,
-		        bury: [],
-				events: {
-		            mousedown: function() {
-		                mouseDownEvent(event.clientX, event.clientY)
-		            },
-		            mouseup: function() {
-		                mouseUpEvent(event.clientX, event.clientY)
-		            },
-		            mousemove: function() {
-		                mouseMoveEvent(event.clientX, event.clientY);
-		            }
-		        }
-		    });
+			var r = new DollarRecognizer();
+			var canvas = $('#dollar canvas')
+							.attr('width', 800)
+							.attr('height', 100)
+							.get(0);
+			DollarRecognizerCanvas.activate({
+				r: r,
+				bury: [],
+				canvas: canvas
+			});
 		});
 	</script>
 	<script type="text/javascript" src="./washington_files/canvas.text.js"></script>

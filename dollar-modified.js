@@ -109,6 +109,7 @@ var DollarRecognizer = (function(){
     var AngleRange = Deg2Rad(45.0);
     var AnglePrecision = Deg2Rad(2.0);
     var Phi = 0.5 * (-1.0 + Math.sqrt(5.0)); // Golden Ratio
+    var activeCalculation;
     //
     // DollarRecognizer class
     //
@@ -134,8 +135,8 @@ var DollarRecognizer = (function(){
     	//
     	// The $1 Gesture Recognizer API begins here -- 3 methods
     	//
-    	this.Recognize = function(points, useProtractor)
-    	{
+    	this.Recognize = function(points) {
+    	    var useProtractor = activeCalculation === "protractor";
     		points = Resample(points, NumPoints);
     		var radians = IndicativeAngle(points);
     		points = RotateBy(points, -radians);
@@ -161,13 +162,19 @@ var DollarRecognizer = (function(){
     				t = i; // unistroke template
     			}
     		}
-    		return new Result(this.Templates[t].Name, useProtractor ? 1.0 / b : 1.0 - b / HalfDiagonal);
+    		if(useProtractor) {
+    		    var score = 1.0 / b;
+    		} else {
+    		    var score = 1.0 - b / HalfDiagonal;
+    		}
+    		return new Result(this.Templates[t].Name, score);
     	};
     	//
     	// add/delete new templates
     	//
-    	this.AddTemplate = function(name, points)
+    	this.addTemplate = function(name, points)
     	{
+    	    if(points instanceof String) { points = stringToPoints(points); }
     		this.Templates.push(new Template(name, points));
     		var num = 0;
     		for (var i = 0; i < this.Templates.length; i++)
@@ -177,10 +184,13 @@ var DollarRecognizer = (function(){
     		}
     		return num;
     	}
-    	this.DeleteUserTemplates = function()
-    	{
-    		this.Templates.length = NumTemplates; // clear any beyond the original set
-    		return NumTemplates;
+    	this.resetTemplates = function() {
+    	    this.Templates = _.map(opts.templates, function(ts, tname){
+        	    return new Template(tname, DollarRecognizer.stringToPoints(ts));
+        	});;
+    	}
+    	this.useCalculation = function(cname) {
+    	    activeCalculation = cname;
     	}
     }
     //
@@ -380,7 +390,6 @@ var DollarRecognizer = (function(){
             }
         });
     };
-
     var defaultTemplates = {
     	"triangle": "137,139;135,141;133,144;132,146;130,149;128,151;126,155;123,160;120,166;116,171;112,177;107,183;102,188;100,191;95,195;90,199;86,203;82,206;80,209;75,213;73,213;70,216;67,219;64,221;61,223;60,225;62,226;65,225;67,226;74,226;77,227;85,229;91,230;99,231;108,232;116,233;125,233;134,234;145,233;153,232;160,233;170,234;177,235;179,236;186,237;193,238;198,239;200,237;202,239;204,238;206,234;205,230;202,222;197,216;192,207;186,198;179,189;174,183;170,178;164,171;161,168;154,160;148,155;143,150;138,148;136,148",
     	"x": "87,142;89,145;91,148;93,151;96,155;98,157;100,160;102,162;106,167;108,169;110,171;115,177;119,183;123,189;127,193;129,196;133,200;137,206;140,209;143,212;146,215;151,220;153,222;155,223;157,225;158,223;157,218;155,211;154,208;152,200;150,189;148,179;147,170;147,158;147,148;147,141;147,136;144,135;142,137;140,139;135,145;131,152;124,163;116,177;108,191;100,206;94,217;91,222;89,225;87,226;87,224",
@@ -400,4 +409,147 @@ var DollarRecognizer = (function(){
     	"pigtail": "81,219;84,218;86,220;88,220;90,220;92,219;95,220;97,219;99,220;102,218;105,217;107,216;110,216;113,214;116,212;118,210;121,208;124,205;126,202;129,199;132,196;136,191;139,187;142,182;144,179;146,174;148,170;149,168;151,162;152,160;152,157;152,155;152,151;152,149;152,146;149,142;148,139;145,137;141,135;139,135;134,136;130,140;128,142;126,145;122,150;119,158;117,163;115,170;114,175;117,184;120,190;125,199;129,203;133,208;138,213;145,215;155,218;164,219;166,219;177,219;182,218;192,216;196,213;199,212;201,211"
     };
     return DollarRecognizer;
+})();
+
+var _points = [];
+var DollarRecognizerCanvas = (function(){
+    var _isDown, _g, _r, _rc;
+    function activate(_opts) {
+        var opts = _.extend({
+            bury: ['onselectstart', 'onmousedown'],
+            r: false,
+            canvas: false,
+            events: {
+	            mousedown: function(event) {
+	                mouseDownEvent(event.clientX, event.clientY)
+	            },
+	            mouseup: function(event) {
+	                mouseUpEvent(event.clientX, event.clientY)
+	            },
+	            mousemove: function(event) {
+	                mouseMoveEvent(event.clientX, event.clientY);
+	            }
+	        }
+        }, _opts);
+        _r = opts.r;
+        _.each(opts.bury, function(evtName){
+            document[evtName] = function(){
+                return false;
+            }
+        });
+        var $c = $(opts.canvas);
+        _.each(opts.events, function(cb, ename){
+            $c.on(ename, cb);
+        });
+
+        _g = opts.canvas.getContext('2d');
+    	_g.fillStyle = "rgb(0,0,225)";
+    	_g.strokeStyle = "rgb(0,0,225)";
+    	_g.lineWidth = 3;
+    	_g.font = "16px Gentilis";
+    	_rc = getCanvasRect(opts.canvas); // canvas rect on page
+    	_g.fillStyle = "rgb(255,255,136)";
+    	_g.fillRect(0, 0, _rc.width, 20);
+    	_isDown = false;
+    	return _g;
+    }
+
+    function getCanvasRect(canvas)
+    {
+    	var w = canvas.width;
+    	var h = canvas.height;
+
+    	var cx = canvas.offsetLeft;
+    	var cy = canvas.offsetTop;
+    	while (canvas.offsetParent != null)
+    	{
+    		canvas = canvas.offsetParent;
+    		cx += canvas.offsetLeft;
+    		cy += canvas.offsetTop;
+    	}
+    	return {x: cx, y: cy, width: w, height: h};
+    }
+    function getScrollY()
+    {
+    	var scrollY = 0;
+    	if (typeof(document.body.parentElement) != 'undefined')
+    	{
+    		scrollY = document.body.parentElement.scrollTop; // IE
+    	}
+    	else if (typeof(window.pageYOffset) != 'undefined')
+    	{
+    		scrollY = window.pageYOffset; // FF
+    	}
+    	return scrollY;
+    }
+    //
+    // Mouse Events
+    //
+    function mouseDownEvent(x, y)
+    {
+    	x -= _rc.x;
+    	y -= _rc.y - getScrollY();
+    	if (_points.length > 0)
+    	{
+    		_g.clearRect(0, 0, _rc.width, _rc.height);
+    	}
+    	_points = [{X: x, Y: y}];
+    	drawText("Recording unistroke...");
+    	_g.fillRect(x - 4, y - 3, 9, 9);
+    	_isDown = true;
+    }
+    function mouseMoveEvent(x, y)
+    {
+    	if (_isDown)
+    	{
+    		x -= _rc.x;
+    		y -= _rc.y - getScrollY();
+    		_points.push({X: x, Y: y});
+    		drawConnectedPoint(_points.length - 2, _points.length - 1);
+    	}
+    }
+    function mouseUpEvent(x, y)
+    {
+    	if (_isDown)
+    	{
+    		_isDown = false;
+    		if (_points.length >= 10)
+    		{
+    			var result = _r.Recognize(_points);
+    			drawText("Result: " + result.Name + " (" + round(result.Score,2) + ").");
+    		}
+    		else // fewer than 10 points were inputted
+    		{
+    			drawText("Too few points made. Please try again.");
+    		}
+    	}
+    }
+    function drawText(str)
+    {
+    	_g.fillStyle = "rgb(255,255,136)";
+    	_g.fillRect(0, 0, _rc.width, 20);
+    	_g.fillStyle = "rgb(0,0,255)";
+    	_g.fillText(str, 1, 14);
+    }
+    function drawConnectedPoint(from, to)
+    {
+    	_g.beginPath();
+    	_g.moveTo(_points[from].X, _points[from].Y);
+    	_g.lineTo(_points[to].X, _points[to].Y);
+    	_g.closePath();
+    	_g.stroke();
+    }
+    function round(n, d) // round 'n' to 'd' decimals
+    {
+    	d = Math.pow(10, d);
+    	return Math.round(n * d) / d
+    }
+
+    return {
+        activate: activate,
+        drawText: drawText,
+        points: function(){
+            return _points
+        }
+    };
 })();
