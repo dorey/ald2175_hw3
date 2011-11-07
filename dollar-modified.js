@@ -59,14 +59,6 @@
 **/
 var $1Recognizer = (function(){
     //
-    // Point class
-    //
-    function Point(x, y) // constructor
-    {
-    	this.X = x;
-    	this.Y = y;
-    }
-    //
     // Template class: a unistroke template
     //
     function Template(name, points) // constructor
@@ -93,7 +85,7 @@ var $1Recognizer = (function(){
     var NumTemplates = 16;
     var NumPoints = 64;
     var SquareSize = 250.0;
-    var Origin = new Point(0,0);
+    var Origin = {X: 0, Y: 0};
     var Diagonal = Math.sqrt(SquareSize * SquareSize + SquareSize * SquareSize);
     var HalfDiagonal = 0.5 * Diagonal;
     var AngleRange = Deg2Rad(45.0);
@@ -194,7 +186,7 @@ var $1Recognizer = (function(){
     		{
     			var qx = points[i - 1].X + ((I - D) / d) * (points[i].X - points[i - 1].X);
     			var qy = points[i - 1].Y + ((I - D) / d) * (points[i].Y - points[i - 1].Y);
-    			var q = new Point(qx, qy);
+    			var q = {X: qx, Y: qy};
     			newpoints[newpoints.length] = q; // append new point 'q'
     			points.splice(i, 0, q); // insert 'q' at position i in points s.t. 'q' will be the next i
     			D = 0.0;
@@ -204,7 +196,7 @@ var $1Recognizer = (function(){
     	// somtimes we fall a rounding-error short of adding the last point, so add it if so
     	if (newpoints.length == n - 1)
     	{
-    		newpoints[newpoints.length] = new Point(points[points.length - 1].X, points[points.length - 1].Y);
+    		newpoints[newpoints.length] = {X: points[points.length - 1].X, Y: points[points.length - 1].Y};
     	}
     	return newpoints;
     }
@@ -223,7 +215,7 @@ var $1Recognizer = (function(){
     	{
     		var qx = (points[i].X - c.X) * cos - (points[i].Y - c.Y) * sin + c.X
     		var qy = (points[i].X - c.X) * sin + (points[i].Y - c.Y) * cos + c.Y;
-    		newpoints[newpoints.length] = new Point(qx, qy);
+    		newpoints[newpoints.length] = {X: qx, Y: qy};
     	}
     	return newpoints;
     }
@@ -235,7 +227,7 @@ var $1Recognizer = (function(){
     	{
     		var qx = points[i].X * (size / B.Width);
     		var qy = points[i].Y * (size / B.Height);
-    		newpoints[newpoints.length] = new Point(qx, qy);
+    		newpoints[newpoints.length] = {X: qx, Y: qy};
     	}
     	return newpoints;
     }
@@ -247,7 +239,7 @@ var $1Recognizer = (function(){
     	{
     		var qx = points[i].X + pt.X - c.X;
     		var qy = points[i].Y + pt.Y - c.Y;
-    		newpoints[newpoints.length] = new Point(qx, qy);
+    		newpoints[newpoints.length] = {X: qx, Y: qy};
     	}
     	return newpoints;
     }
@@ -324,7 +316,7 @@ var $1Recognizer = (function(){
     	}
     	x /= points.length;
     	y /= points.length;
-    	return new Point(x, y);
+    	return {X: x, Y: y};
     }
     function BoundingBox(points)
     {
