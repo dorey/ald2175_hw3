@@ -64,46 +64,43 @@ var $1Recognizer = (function(){
     function Template(name, points) // constructor
     {
     	this.Name = name;
-    	this.Points = Resample(points, NumPoints);
+    	this.Points = Resample(points, numPoints);
     	var radians = IndicativeAngle(this.Points);
     	this.Points = RotateBy(this.Points, -radians);
-    	this.Points = ScaleTo(this.Points, SquareSize);
-    	this.Points = TranslateTo(this.Points, Origin);
+    	this.Points = ScaleTo(this.Points, squareSize);
+    	this.Points = TranslateTo(this.Points, origin);
     	this.Vector = Vectorize(this.Points); // for Protractor
-    }
-    //
-    // Result class
-    //
-    function Result(name, score) // constructor
-    {
-    	this.Name = name;
-    	this.Score = score;
     }
     //
     // $1Recognizer class constants
     //
-    var NumTemplates = 16;
-    var NumPoints = 64;
-    var SquareSize = 250.0;
-    var Origin = {X: 0, Y: 0};
-    var Diagonal = Math.sqrt(SquareSize * SquareSize + SquareSize * SquareSize);
-    var HalfDiagonal = 0.5 * Diagonal;
-    var AngleRange = Deg2Rad(45.0);
-    var AnglePrecision = Deg2Rad(2.0);
-    var Phi = 0.5 * (-1.0 + Math.sqrt(5.0)); // Golden Ratio
-    var activeCalculation;
+//    var NumPoints = 64;
+    var activeCalculation,
+        numPoints,
+        squareSize,
+        diagonal,
+        halfDiagonal,
+        angleRange = Deg2Rad(45),
+        anglePrecision = Deg2Rad(2),
+        origin = {X: 0, Y: 0},
+        PHI = 0.5 * (-1.0 + Math.sqrt(5.0));
     //
     // $1Recognizer class
     //
-    function $1Recognizer(_opts) // constructor
-    {
+    function $1Recognizer(_opts) {
         //
         // opts allows us to set default options which can be
         // overridden when $1Recognizer is constructed.
         //
         var opts = _.extend({
+            numPoints: 64,
+            squareSize: 250.0,
             templates: defaultTemplates
         }, _opts);
+        numPoints = opts.numPoints;
+        squareSize = opts.squareSize;
+        diagonal = Math.sqrt(squareSize * squareSize + squareSize * squareSize);
+        halfDiagonal = diagonal / 2;
 
         // Preserving original templates to make them easy to reset
         this.originalTemplates = opts.templates;
@@ -119,11 +116,11 @@ var $1Recognizer = (function(){
     	//
     	this.Recognize = function(points) {
     	    var useProtractor = activeCalculation === "protractor";
-    		points = Resample(points, NumPoints);
+    		points = Resample(points, numPoints);
     		var radians = IndicativeAngle(points);
     		points = RotateBy(points, -radians);
-    		points = ScaleTo(points, SquareSize);
-    		points = TranslateTo(points, Origin);
+    		points = ScaleTo(points, squareSize);
+    		points = TranslateTo(points, origin);
     		var vector = Vectorize(points); // for Protractor
     		var b = +Infinity;
     		var t = 0;
@@ -143,9 +140,9 @@ var $1Recognizer = (function(){
     		if(useProtractor) {
     		    var score = 1.0 / b;
     		} else {
-    		    var score = 1.0 - b / HalfDiagonal;
+    		    var score = 1.0 - b / halfDiagonal;
     		}
-    		return new Result(this.Templates[t].Name, score);
+    		return {Name: this.Templates[t].Name, Score: score};
     	};
     	//
     	// add/delete new templates
@@ -155,8 +152,7 @@ var $1Recognizer = (function(){
     	    if(points instanceof String) { points = stringToPoints(points); }
     		this.Templates.push(new Template(name, points));
     		var num = 0;
-    		for (var i = 0; i < this.Templates.length; i++)
-    		{
+    		for (var i = 0; i < this.Templates.length; i++) {
     			if (this.Templates[i].Name == name)
     				num++;
     		}
@@ -274,11 +270,11 @@ var $1Recognizer = (function(){
     }
     function DistanceAtBestAngle(T, context)
     {
-        var a = AngleRange, b = -AngleRange, threshold = AnglePrecision;
+        var a = angleRange, b = -angleRange, threshold = anglePrecision;
         var points = context.points;
-    	var x1 = Phi * a + (1.0 - Phi) * b;
+    	var x1 = PHI * a + (1.0 - PHI) * b;
     	var f1 = DistanceAtAngle(points, T, x1);
-    	var x2 = (1.0 - Phi) * a + Phi * b;
+    	var x2 = (1.0 - PHI) * a + PHI * b;
     	var f2 = DistanceAtAngle(points, T, x2);
     	while (Math.abs(b - a) > threshold)
     	{
@@ -287,7 +283,7 @@ var $1Recognizer = (function(){
     			b = x2;
     			x2 = x1;
     			f2 = f1;
-    			x1 = Phi * a + (1.0 - Phi) * b;
+    			x1 = PHI * a + (1.0 - PHI) * b;
     			f1 = DistanceAtAngle(points, T, x1);
     		}
     		else
@@ -295,7 +291,7 @@ var $1Recognizer = (function(){
     			a = x1;
     			x1 = x2;
     			f1 = f2;
-    			x2 = (1.0 - Phi) * a + Phi * b;
+    			x2 = (1.0 - PHI) * a + PHI * b;
     			f2 = DistanceAtAngle(points, T, x2);
     		}
     	}
