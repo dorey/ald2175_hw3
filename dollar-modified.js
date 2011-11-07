@@ -413,11 +413,13 @@ var $1Recognizer = (function(){
 
 var _points = [];
 var $1RecognizerCanvas = (function(){
-    var _isDown, _g, _r, _rc;
+    var _isDown, _g, _r, _rc, opts;
     function activate(_opts) {
-        var opts = _.extend({
+        opts = _.extend({
             R: false,
             canvas: false,
+            color: "rgb(0,0,225)",
+            rectColor: "rgb(255,255,136)",
             events: {
 	            mousedown: function(event) {
 	                mouseDownEvent(event.clientX, event.clientY)
@@ -437,12 +439,12 @@ var $1RecognizerCanvas = (function(){
         });
 
         _g = opts.canvas.getContext('2d');
-    	_g.fillStyle = "rgb(0,0,225)";
-    	_g.strokeStyle = "rgb(0,0,225)";
+    	_g.fillStyle = opts.color;
+    	_g.strokeStyle = opts.color;
     	_g.lineWidth = 3;
-    	_g.font = "16px Gentilis";
+    	_g.font = "16px Arial";
     	_rc = getCanvasRect(opts.canvas); // canvas rect on page
-    	_g.fillStyle = "rgb(255,255,136)";
+    	_g.fillStyle = opts.rectColor;
     	_g.fillRect(0, 0, _rc.width, 20);
     	_isDown = false;
     	return _g;
@@ -520,9 +522,9 @@ var $1RecognizerCanvas = (function(){
     }
     function drawText(str)
     {
-    	_g.fillStyle = "rgb(255,255,136)";
+    	_g.fillStyle = opts.rectColor;
     	_g.fillRect(0, 0, _rc.width, 20);
-    	_g.fillStyle = "rgb(0,0,255)";
+    	_g.fillStyle = opts.color;
     	_g.fillText(str, 1, 14);
     }
     function drawConnectedPoint(from, to)
