@@ -18,20 +18,39 @@ var samples = {
 };
 
 test("sample_recognizer", function(){
-    var _r = new DollarRecognizer();
+    var r = new $1Recognizer();
     _.each(samples, function(patternStr, patternName){
-        var result = _r.Recognize(DollarRecognizer.stringToPoints(patternStr))
+        var result = r.Recognize($1Recognizer.stringToPoints(patternStr))
         equals(patternName, result.Name, "The sample pattern worked for " + patternName);
     });
 });
 
-test("converting", function(){
-    var zz = {};
+test("converter", function(){
+    _.each(samples, function(patternStr, patternName){
+        equals($1Recognizer.pointsToString($1Recognizer.stringToPoints(patternStr)), patternStr)
+    });
 });
 
-test("converter", function(){
-    var c1 = DollarRecognizer.stringToPoints(samples['zig-zag']);
-    var cArr = DollarRecognizer.pointsToString(c1);
-    var c2 = DollarRecognizer.stringToPoints(cArr);
-    deepEqual(c1, c2);
+test("simple_template", function(){
+    var pt1 = "1,1;2,2;3,3;4,4;5,5;6,6;7,7;8,8;9,9;10,10;11,11";
+
+    // one point is slightly different
+    var pt2 = "1,1;2,2;3,3;4,4;5,5;6,7;7,7;8,8;9,9;10,10;11,11";
+    var expectedScore = {
+        golden: -41,
+        protractor: 74
+    };
+    var r = new $1Recognizer({
+        templates: {
+            straight: pt1
+        }
+    });
+    _.each(expectedScore, function(expScore, calc){
+        r.useCalculation(calc);
+        var result = r.Recognize($1Recognizer.stringToPoints(pt2));
+        var name = result.Name;
+        var score = Math.floor(result.Score*100);
+        equals("straight", name);
+        equals(expScore, score);
+    });
 });

@@ -30,7 +30,6 @@
 				<p>
 					<input type="checkbox" id="use-protractor"> Use Protractor
 				</p>
-				<textarea id="debug"></textarea>
 			</div>
 		</div>
 		<div class="row">
@@ -60,12 +59,12 @@
     </div>
 	<script type="text/javascript" charset="utf-8">
 		$(function() {
-			var r = new DollarRecognizer();
+			var r = new $1Recognizer();
 			var canvas = $('#dollar canvas')
 							.attr('width', 800)
 							.attr('height', 100)
 							.get(0);
-			DollarRecognizerCanvas.activate({
+			$1RecognizerCanvas.activate({
 				r: r,
 				bury: [],
 				canvas: canvas

@@ -57,7 +57,7 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
-var DollarRecognizer = (function(){
+var $1Recognizer = (function(){
     //
     // Point class
     //
@@ -98,7 +98,7 @@ var DollarRecognizer = (function(){
     	this.Score = score;
     }
     //
-    // DollarRecognizer class constants
+    // $1Recognizer class constants
     //
     var NumTemplates = 16;
     var NumPoints = 64;
@@ -111,13 +111,13 @@ var DollarRecognizer = (function(){
     var Phi = 0.5 * (-1.0 + Math.sqrt(5.0)); // Golden Ratio
     var activeCalculation;
     //
-    // DollarRecognizer class
+    // $1Recognizer class
     //
-    function DollarRecognizer(_opts) // constructor
+    function $1Recognizer(_opts) // constructor
     {
         //
         // opts allows us to set default options which can be
-        // overridden when DollarRecognizer is constructed.
+        // overridden when $1Recognizer is constructed.
         //
         var opts = _.extend({
             templates: defaultTemplates
@@ -130,7 +130,7 @@ var DollarRecognizer = (function(){
     	// one predefined template for each unistroke type
     	//
     	this.Templates = _.map(opts.templates, function(ts, tname){
-    	    return new Template(tname, DollarRecognizer.stringToPoints(ts));
+    	    return new Template(tname, $1Recognizer.stringToPoints(ts));
     	});
     	//
     	// The $1 Gesture Recognizer API begins here -- 3 methods
@@ -182,7 +182,7 @@ var DollarRecognizer = (function(){
     	}
     	this.resetTemplates = function() {
     	    this.Templates = _.map(opts.templates, function(ts, tname){
-        	    return new Template(tname, DollarRecognizer.stringToPoints(ts));
+        	    return new Template(tname, $1Recognizer.stringToPoints(ts));
         	});;
     	}
     	this.useCalculation = function(cname) {
@@ -375,13 +375,13 @@ var DollarRecognizer = (function(){
     function Deg2Rad(d) { return (d * Math.PI / 180.0); }
     function Rad2Deg(r) { return (r * 180.0 / Math.PI); }
 
-    DollarRecognizer.pointsToString = function pointsToString(pts) {
+    $1Recognizer.pointsToString = function pointsToString(pts) {
         return _.map(pts, function(t){
             return [t.X, t.Y].join(',')
         }).join(';');
     };
 
-    DollarRecognizer.stringToPoints = function stringToPoints(str) {
+    $1Recognizer.stringToPoints = function stringToPoints(str) {
         return _.map(str.split(';'), function(ps){
             var pt = ps.split(',');
             return {
@@ -408,11 +408,11 @@ var DollarRecognizer = (function(){
     	"star": "75,250;75,247;77,244;78,242;79,239;80,237;82,234;82,232;84,229;85,225;87,222;88,219;89,216;91,212;92,208;94,204;95,201;96,196;97,194;98,191;100,185;102,178;104,173;104,171;105,164;106,158;107,156;107,152;108,145;109,141;110,139;112,133;113,131;116,127;117,125;119,122;121,121;123,120;125,122;125,125;127,130;128,133;131,143;136,153;140,163;144,172;145,175;151,189;156,201;161,213;166,225;169,233;171,236;174,243;177,247;178,249;179,251;180,253;180,255;179,257;177,257;174,255;169,250;164,247;160,245;149,238;138,230;127,221;124,220;112,212;110,210;96,201;84,195;74,190;64,182;55,175;51,172;49,170;51,169;56,169;66,169;78,168;92,166;107,164;123,161;140,162;156,162;171,160;173,160;186,160;195,160;198,161;203,163;208,163;206,164;200,167;187,172;174,179;172,181;153,192;137,201;123,211;112,220;99,229;90,237;80,244;73,250;69,254;69,252",
     	"pigtail": "81,219;84,218;86,220;88,220;90,220;92,219;95,220;97,219;99,220;102,218;105,217;107,216;110,216;113,214;116,212;118,210;121,208;124,205;126,202;129,199;132,196;136,191;139,187;142,182;144,179;146,174;148,170;149,168;151,162;152,160;152,157;152,155;152,151;152,149;152,146;149,142;148,139;145,137;141,135;139,135;134,136;130,140;128,142;126,145;122,150;119,158;117,163;115,170;114,175;117,184;120,190;125,199;129,203;133,208;138,213;145,215;155,218;164,219;166,219;177,219;182,218;192,216;196,213;199,212;201,211"
     };
-    return DollarRecognizer;
+    return $1Recognizer;
 })();
 
 var _points = [];
-var DollarRecognizerCanvas = (function(){
+var $1RecognizerCanvas = (function(){
     var _isDown, _g, _r, _rc;
     function activate(_opts) {
         var opts = _.extend({
