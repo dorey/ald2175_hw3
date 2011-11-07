@@ -417,7 +417,7 @@ var $1RecognizerCanvas = (function(){
     function activate(_opts) {
         var opts = _.extend({
             bury: ['onselectstart', 'onmousedown'],
-            r: false,
+            R: false,
             canvas: false,
             events: {
 	            mousedown: function(event) {
@@ -431,7 +431,7 @@ var $1RecognizerCanvas = (function(){
 	            }
 	        }
         }, _opts);
-        _r = opts.r;
+        _r = opts.R;
         _.each(opts.bury, function(evtName){
             document[evtName] = function(){
                 return false;

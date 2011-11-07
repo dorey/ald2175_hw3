@@ -59,14 +59,13 @@
     </div>
 	<script type="text/javascript" charset="utf-8">
 		$(function() {
-			var r = new $1Recognizer();
+			var R = new $1Recognizer();
 			var canvas = $('#dollar canvas')
 							.attr('width', 800)
 							.attr('height', 100)
 							.get(0);
 			$1RecognizerCanvas.activate({
-				r: r,
-				bury: [],
+				R: R,
 				canvas: canvas
 			});
 		});

@@ -39,7 +39,7 @@
 			</div>
 			<div class="span11">
 				<div id="dollar">
-					<canvas></canvas>
+					<canvas width="600" height="400"></canvas>
 				</div>
 			</div>
 		</div>
@@ -57,21 +57,18 @@
 	<script src="assignment3.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript" charset="utf-8">
 		$(function() {
-			var r = new $1Recognizer();
-			var canvas = $('#dollar canvas')
-							.attr('width', 600)
-							.attr('height', 400)
-							.get(0);
+			// Creates a recognizer with the default templates
+			var R = new $1Recognizer();
+			var canvas = $('#dollar canvas').get(0);
 			$1RecognizerCanvas.activate({
-				r: r,
-				bury: [],
+				R: R,
 				canvas: canvas
 			});
 			$('#use-protractor').change(function(){
 				if(!!$(this).attr('checked')) {
-					r.useCalculation('protractor');
+					R.useCalculation('protractor');
 				} else {
-					r.useCalculation('golden');
+					R.useCalculation('golden');
 				}
 			});
 		});

@@ -22,9 +22,9 @@
 			//
 			// activate the canvas element
 			//
-			var r = new $1Recognizer();
+			var R = new $1Recognizer();
 			$1RecognizerCanvas.activate({
-				r: r,
+				R: R,
 				bury: [],
 				canvas: $('canvas').get(0)
 			});
@@ -36,7 +36,7 @@
 				var points = $1RecognizerCanvas.points();
 				if (points.length >= 10) {
 					var name = $('#templates').val();
-					var num = r.addTemplate(name, points);
+					var num = R.addTemplate(name, points);
 					var notice = "\"" + name + "\" added. Number of \"" + name + "\"s defined: " + num + ".";
 					$1RecognizerCanvas.drawText(notice);
 				}
@@ -45,13 +45,13 @@
 				var points = $1RecognizerCanvas.points();
 				var name = $('#custom').val();
 				if (points.length >= 10 && name.length > 0) {
-					var num = r.addTemplate(name, points);
+					var num = R.addTemplate(name, points);
 					var notice = "\"" + name + "\" added. Number of \"" + name + "\"s defined: " + num + ".";
 					$1RecognizerCanvas.drawText(notice);
 				}
 			});
 			$('input#delete-custom').click(function(){
-				r.resetTemplates();
+				R.resetTemplates();
 			});
 		});
 	</script>
