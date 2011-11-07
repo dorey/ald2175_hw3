@@ -339,16 +339,19 @@ var $1Recognizer = (function(){
     function BoundingBox(points)
     {
     	var minX = +Infinity, maxX = -Infinity, minY = +Infinity, maxY = -Infinity;
-    	for (var i = 0; i < points.length; i++)
-    	{
-    		if (points[i].X < minX)
-    			minX = points[i].X;
-    		if (points[i].X > maxX)
-    			maxX = points[i].X;
-    		if (points[i].Y < minY)
-    			minY = points[i].Y;
-    		if (points[i].Y > maxY)
-    			maxY = points[i].Y;
+    	for (var i = 0, l = points.length; i < l; i++) {
+    		if (points[i].X < minX) {
+    		    minX = points[i].X;
+    		} else if (points[i].X > maxX) {
+    		    maxX = points[i].X;
+    		}
+
+    		if (points[i].Y < minY) {
+    		    minY = points[i].Y;
+    		} else if (points[i].Y > maxY) {
+    		    maxY = points[i].Y;
+    		}
+    	}
     	}
     	return new Rectangle(minX, minY, maxX - minX, maxY - minY);
     }
