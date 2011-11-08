@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>COMS W4170: Assignment 3</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link href="libs/bootstrap.min.css" rel="stylesheet">
+	<script src="libs/jquery-1.7.js" type="text/javascript" charset="utf-8"></script>
+	<script src="libs/debug.js" type="text/javascript" charset="utf-8"></script>
+	<script src="libs/underscore.js" type="text/javascript" charset="utf-8"></script>
+	<script src="libs/jquery.mustache.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript" src="./washington_files/canvas.text.js"></script>
+	<script type="text/javascript" src="./washington_files/gentilis-normal-normal.js"></script>
+	<script src="dollar-modified.js" type="text/javascript" charset="utf-8"></script>
+	<script src="builder.js" type="text/javascript" charset="utf-8"></script>
+	<script src="libs/raphael.js" type="text/javascript" charset="utf-8"></script>
+	<script src="libs/qunit.js" type="text/javascript" charset="utf-8"></script>
+    <link href="libs/qunit.css" rel="stylesheet">
+	
+    <link href="style.css" rel="stylesheet">
+  </head>
+  <body>
+
+
+	<script type="text/javascript" charset="utf-8">
+	var Builder = (function(_opts){
+	    var opts, elem, r, points = [], rblocks;
+		function markPoint(data, done) {
+			points.push(data);
+			var X = data.X, Y = data.Y;
+			rblocks[Y][X].attr('fill', opts.colors.active);
+		}
+		function pointsToString() {
+			return _.map(points, function(pt){
+				return [pt.X, pt.Y].join(',');
+			}).join(';');
+		}
+		function init(_opts) {
+			opts = _.extend({
+		        size: {w: 15, h: 15},
+		        square: 25,
+		        elem: '#builder',
+				colors: {
+					inactive: 'rgba(255,0,0,0.2)',
+					active: 'rgba(255,0,0,0.7)'
+				}
+		    }, _opts);
+			elem = $(opts.elem);
+			var w = elem.width(), h = elem.height();
+			r = Raphael(elem.get(0), w, h)
+			var s = opts.square, lY;
+			rblocks = [];
+			_(s).times(function(ri){
+				lY = [];
+				_(s).times(function(ii){
+					var cell = r.rect((ii*opts.size.w), (ri*opts.size.h), opts.size.w, opts.size.h);
+					cell.attr("fill", opts.colors.inactive);
+					cell.attr("stroke", '#fff');
+					$(cell.node).data({ Y: ri, X: ii });
+					lY.push(cell);
+				});
+				rblocks.push(lY);
+			});
+			return true;
+		}
+		function iterate(cb) {
+			_.each(rblocks, function(row){
+				_.each(row, function(cell){cb.call(this, cell);});
+			});
+		}
+		function listen() {
+			iterate(function(cell){
+				$(cell.node).click(function(){
+					markPoint($(this).data());
+				});
+			});
+		}
+		function reset() {
+			points = [];
+			iterate(function(cell){
+				cell.attr('fill', opts.colors.inactive);
+			});
+			return true;
+		}
+		return {
+			init: init,
+			pointsToString: pointsToString,
+			listen: listen,
+			reset: reset,
+			markPoint: markPoint
+		}
+	})();
+
+	$(function(){
+		test("builder", function(){
+			var opts = {
+				elem: '#at1'
+			};
+			ok(Builder.init(opts), "builder is initialized");
+			var pointList = [
+					[1,1],
+					[5,1]
+				];
+			_.each(pointList, function(pt){Builder.markPoint({X:pt[0], Y:pt[1]});});
+			var pl = _.map(pointList, function(p){return p.join(',')}).join(';');
+			equals(Builder.pointsToString(), pl);
+			ok(Builder.reset(), "builder can reset");
+			equals("", Builder.pointsToString(), "reset builder has an empty");
+		});
+	});
+	</script>
+    <div class="container">
+      <div class="content">
+		<div class="row">
+			<div class="span5">
+				&nbsp;
+			</div>
+			<div class="span9">
+				<h1 id="qunit-header">QUnit Test Suite</h1>
+				<h2 id="qunit-banner"></h2>
+				<div id="qunit-testrunner-toolbar"></div>
+				<h2 id="qunit-userAgent"></h2>
+				<ol id="qunit-tests"></ol>
+				<div id="qunit-fixture">test markup</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="span5">
+				&nbsp;
+			</div>
+			<div class="span9">
+				<div style='width:400px;height:400px;' id="at1">
+				</div>
+			</div>
+		</div>
+	<script type="text/javascript">
+	</script>
+      <footer>
+        <p>
+			<a href="https://github.com/dorey/ald2175_hw3">view the code</a> |
+			<a href="http://dorey.github.com/">alex dorey</a> |
+			<a href="mailto:ald2175@columbia.edu">ald2175@columbia.edu</a>
+		</p>
+      </footer>
+    </div>
+  </body>
+</html>
