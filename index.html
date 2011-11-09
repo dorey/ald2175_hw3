@@ -124,6 +124,22 @@
 				}
 			});
 		});
+		$(function(){
+			var active = false;
+			$('body').mousemove(function(evt){
+				var buttonClicked = evt.which;
+				if(!active && buttonClicked) {
+					//start dragging?
+					log("clicked");
+					active = true;
+				} else if(active && buttonClicked) {
+					log("dragging");
+				} else if(active && !buttonClicked) {
+					log("unclicked");
+					active = false;
+				}
+			});
+		});
 	</script>
   </body>
 </html>
