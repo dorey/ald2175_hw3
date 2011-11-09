@@ -81,7 +81,8 @@ var $1Recognizer = (function(){
         var opts = _.extend({
             numPoints: 64,
             squareSize: 250.0,
-            templates: defaultTemplates
+            templates: defaultTemplates,
+            onRecognize: false
         }, _opts);
         numPoints = opts.numPoints;
         squareSize = opts.squareSize;
@@ -93,6 +94,7 @@ var $1Recognizer = (function(){
         //
         this.originalTemplates = opts.templates;
         this.resetTemplates();
+        this.onRecognize = opts.onRecognize;
     }
     $1Recognizer.prototype.recognize = function(points) {
         var useProtractor = activeCalculation === "protractor";
@@ -124,6 +126,9 @@ var $1Recognizer = (function(){
 		} else {
 		    var score = 1.0 - b / halfDiagonal;
 		}
+        if(!!this.onRecognize) {
+            this.onRecognize.call(context, t, score);
+        }
 		return {Name: t, Score: score};
     }
     $1Recognizer.prototype.useCalculation = function(cname) {

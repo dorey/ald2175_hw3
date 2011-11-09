@@ -39,8 +39,58 @@
 			</div>
 			<div class="span11">
 				<div id="dollar">
-					<canvas width="600" height="400"></canvas>
+					<canvas id="dollar-canvas" width="600" height="400"></canvas>
 				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="span11 offset3">
+				<ul>
+					<li>
+						<a href="#withcanvas">
+							Using HTML5 Canvas Element
+						</a>
+					</li>
+				</ul>
+				<hr>
+				<h3 id="withcanvas">
+					Simple Example <small>How to use this in your website</small>
+				</h3>
+				<h3>
+					1. <small>Include Libraries</small>
+				</h3>
+				<p>
+					Include the jQuery library and the $1Recognizer (modified) script in your page:
+				</p>
+				<code>
+					&lt;script type="text/javascript" src="jquery.js"&gt;&lt;/script&gt;
+					<br>
+					&lt;script type="text/javascript" src="dollar-modified.js"&gt;&lt;/script&gt;
+				</code>
+				<br>
+				<h3>
+					2. <small>The Canvas Element</small>
+				</h3>
+				<p>
+					Add a canvas element to your page:
+				</p>
+				<code>
+					&lt;canvas width="400" height="400" id="dollar-canvas"&gt;&lt;/canvas&gt;
+				</code>
+				<br>
+				<h3>
+					3. <small>The Code</small>
+				</h3>
+				<p>
+					Create the $1Recognizer object as well and "activate" the canvas in your javascript:
+				</p>
+				<code>
+					var R = new $1Recognizer();<br>
+					$1RecognizerCanvas.activate({<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;R: R,<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;canvas: document.getElementById('dollar-canvas')<br>
+					});
+				</code>
 			</div>
 		</div>
       <footer>
@@ -59,10 +109,12 @@
 		$(function() {
 			// Creates a recognizer with the default templates
 			var R = new $1Recognizer();
-			var canvas = $('#dollar canvas').get(0);
+			R.onRecognize = function(patternName, score){
+				log('Recognized: '+patternName + " [" + score + "]");
+			}
 			$1RecognizerCanvas.activate({
 				R: R,
-				canvas: canvas
+				canvas: document.getElementById('dollar-canvas')
 			});
 			$('#use-protractor').change(function(){
 				if(!!$(this).attr('checked')) {
