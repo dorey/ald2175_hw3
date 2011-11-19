@@ -13,6 +13,8 @@
 	<script src="libs/debug.js" type="text/javascript" charset="utf-8"></script>
 	<script src="libs/underscore.js" type="text/javascript" charset="utf-8"></script>
 	<script src="libs/jquery.mustache.js" type="text/javascript" charset="utf-8"></script>
+	<script src="libs/raphael.js" type="text/javascript" charset="utf-8"></script>
+	<script src="gesture-builder.js" type="text/javascript" charset="utf-8"></script>
     <link href="style.css" rel="stylesheet">
   </head>
   <body>
@@ -93,6 +95,41 @@
 				</code>
 			</div>
 		</div>
+		<div class="row">
+			<hr>
+		</div>
+		<div class="row" id="gesturebuilder">
+			<div class="span3">
+				<h3>
+					Gesture Builder
+				</h3>
+				<br>
+				<a href="#" id="save-gesture" class="scb save btn primary">Save</a>
+				<a href="#" id="clear-gesture" class="scb clear btn" style="float:right">Clear</a>
+			</div>
+			<div class="span11">
+				<div id="gesture-builder">
+					&nbsp;
+				</div>
+			</div>
+			<script type="text/javascript" charset="utf-8">
+				$(function(){
+					GestureBuilder.init({
+						elem: '#gesture-builder',
+						listen: true
+					});
+					$('#clear-gesture').click(function(evt){
+						evt.preventDefault();
+						GestureBuilder.clear();
+					});
+					$('#save-gesture').click(function(evt){
+						evt.preventDefault();
+						var p = GestureBuilder.pointsToString();
+						log(p);
+					});
+				});
+			</script>
+		</div>
       <footer>
         <p>
 			<a href="https://github.com/dorey/ald2175_hw3">view the code</a> |
@@ -108,7 +145,41 @@
 	<script type="text/javascript" charset="utf-8">
 		$(function() {
 			// Creates a recognizer with the default templates
-			var R = new $1Recognizer();
+			var R = new $1Recognizer({
+				templates: {
+					back:
+						["2,10;11,10;2,11",
+						"1,8;9,7;1,7"],
+					smiley:
+						"2,7;3,10;6,12;10,13;14,12;17,10;18,7",
+					frowney:
+						"3,10;4,7;6,5;9,4;12,5;14,7;15,10",
+					skip:
+						[
+						/*-- straight line --*/
+						"2,6;5,6;8,6;11,6;14,6;17,6",
+						/*-- line slightly curved up --*/
+						"2,8;10,7;18,8",
+						/*-- line slightly curved down --*/
+						"1,7;8,8;15,7",
+						/*-- line slightly squiggly --*/
+						"2,10;7,8;12,10;18,8",
+						/*-- line slightly squiggly --*/
+						"1,7;7,9;13,7;18,9"],
+					help: [
+						/*-- looks like "S" --*/
+						"2,3;3,2;6,2;7,3;7,5;6,6;4,6;3,8;4,9;5,9;7,9",
+						/*-- looks like "?" with no dot --*/
+						"3,3;4,1;7,1;8,3;8,5;6,6;5,7;5,9;5,10"
+						],
+					quit: [
+						/*-- arrow up and left --*/
+						"7,13;7,1;4,5;10,5",
+						/*-- arrow up and right --*/
+						"7,13;7,1;10,5;4,5",
+						]
+				}
+			});
 			R.onRecognize = function(patternName, score){
 				log('Recognized: '+patternName + " [" + score + "]");
 			}
@@ -124,7 +195,8 @@
 				}
 			});
 		});
-		$(function(){
+
+/*		$(function(){
 			var active = false;
 			$('body').mousemove(function(evt){
 				var buttonClicked = evt.which;
@@ -140,6 +212,7 @@
 				}
 			});
 		});
+	*/
 	</script>
   </body>
 </html>
